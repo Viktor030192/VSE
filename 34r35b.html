@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<title>Тест 1ч/24к</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin-top: 20px;
+  }
+  table {
+    border-collapse: collapse;
+    margin: 20px auto;
+  }
+  td {
+    width: 50px;
+    height: 50px;
+    border: 2px solid #333;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    vertical-align: middle;
+    cursor: pointer;
+    user-select: none;
+  }
+  .black {
+    background-color: black;
+    color: white;
+  }
+  .red {
+    background-color: red;
+    color: white;
+  }
+  #timer {
+    margin-top: 20px;
+    font-size: 18px;
+  }
+  #errors {
+    margin-top: 10px;
+    font-size: 16px;
+    color: red;
+  }
+  #bestTimeDisplay {
+    margin-top: 10px;
+    font-size: 16px;
+  }
+</style>
+</head>
+<body>
+<h0>Тест нужно начинать с 1 черное =>24 красное, 2 черное => 23 красное  и т.д. Закончить тест необходимо 25 черное!</h0>
+<br> 
+<button id="startBtn">&#128260;</button>
+<div id="errors">Ошибки: 0</div>
+<div id="bestTimeDisplay"></div>
+<table id="grid"></table>
+<div id="timer">Время: 00:00.0</div>
+
+<script>
+const size = 7;
+let cells = [];
+let currentPairIndex = 0;
+let gameActive = false;
+let startTimestamp = null;
+let timerInterval = null;
+let errorsCount = 0;
+const totalPairs = 24;
+const bestTimeKey = 'bestTime125';
+
+// Обновление отображения лучшего времени
+function updateBestTimeDisplay() {
+  const bestTimeStr = localStorage.getItem(bestTimeKey);
+  const displayDiv = document.getElementById('bestTimeDisplay');
+  if (bestTimeStr) {
+    const totalSeconds = parseFloat(bestTimeStr);
+    const formatted = formatTime(totalSeconds);
+    displayDiv.textContent = 'Лучшее время: ' + formatted;
+  } else {
+    displayDiv.textContent = 'Лучшее время: нет данных';
+  }
+}
+
+// Форматирование времени в "мм:сс.т"
+function formatTime(seconds) {
+  const minutes = Math.floor(seconds / 60);
+  const sec = Math.floor(seconds % 60);
+  const tenths = Math.round((seconds - Math.floor(seconds)) * 10);
+  return (
+    String(minutes).padStart(2, '0') + ':' +
+    String(sec).padStart(2, '0') + '.' +
+    tenths
+  );
+}
+
+// Перемешивание массива
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+}
+
+// Генерация таблицы
+function generateTable() {
+  const table = document.getElementById('grid');
+  table.innerHTML = '';
+  cells = [];
+  const blackNums = Array.from({length: 25}, (_, i) => i + 1);
+  const redNums = Array.from({length: 24}, (_, i) => i + 1);
+  const allCellsData = [];
+
+  blackNums.forEach(n => allCellsData.push({number: n, color: 'black'}));
+  redNums.forEach(n => allCellsData.push({number: n, color: 'red'}));
+
+  shuffle(allCellsData);
+
+  for (let r = 0; r < size; r++) {
+    const tr = document.createElement('tr');
+    for (let c = 0; c < size; c++) {
+      const index = r * size + c;
+      const data = allCellsData[index];
+      const td = document.createElement('td');
+      td.textContent = data.number;
+      td.className = data.color;
+      td.dataset.number = data.number;
+      td.dataset.color = data.color;
+      td.addEventListener('click', onCellClick);
+      tr.appendChild(td);
+      cells.push(td);
+    }
+    table.appendChild(tr);
+  }
+}
+
+// Обработка клика по ячейке
+function onCellClick(e) {
+  if (!gameActive) {
+    // Игра еще не началась
+    if (e.currentTarget.dataset.color === 'black' && parseInt(e.currentTarget.dataset.number) === 1) {
+      startGame();
+      processSelection(e.currentTarget);
+    }
+    return;
+  }
+
+  if (currentPairIndex >= totalPairs) {
+    // После всех пар, ждём клик по 25 черной
+    if (e.currentTarget.dataset.color === 'black' && parseInt(e.currentTarget.dataset.number) === 25) {
+      processSelection(e.currentTarget);
+      finishTest();
+    }
+    return;
+  }
+
+  const cellNumber = parseInt(e.currentTarget.dataset.number);
+  const cellColor = e.currentTarget.dataset.color;
+
+  const expectedBlackNumber = currentPairIndex + 1;
+  const expectedRedNumber = totalPairs - currentPairIndex;
+
+  if (cellColor === 'black' && cellNumber === expectedBlackNumber) {
+    processSelection(e.currentTarget);
+    if (cellNumber === 1) {
+      startTimeCounting();
+    }
+  } else if (cellColor === 'red' && cellNumber === expectedRedNumber) {
+    processSelection(e.currentTarget);
+    currentPairIndex++;
+  } else {
+    errorsCount++;
+    document.getElementById('errors').textContent = 'Ошибки: ' + errorsCount;
+  }
+}
+
+// Функция обработки выбора (оставляем пустой)
+function processSelection(cell) {
+  // Ничего не делаем
+}
+
+// Старт игры
+function startGame() {
+  gameActive = true;
+  errorsCount = 0;
+  document.getElementById('errors').textContent = 'Ошибки: 0';
+  currentPairIndex = 0;
+  startTimeCounting();
+}
+
+// Таймер
+function startTimeCounting() {
+  startTimestamp = Date.now();
+  updateTimer();
+  timerInterval = setInterval(updateTimer, 100);
+}
+
+function stopTimeCounting() {
+  clearInterval(timerInterval);
+  const endTimestamp = Date.now();
+  const secondsElapsed = (endTimestamp - startTimestamp) / 1000;
+  document.getElementById('timer').textContent = 'Время: ' + formatTime(secondsElapsed);
+
+  // Проверка и сохранение лучшего времени
+  const bestTimeStr = localStorage.getItem(bestTimeKey);
+  const bestTime = bestTimeStr ? parseFloat(bestTimeStr) : null;
+  if (bestTime === null || secondsElapsed < bestTime) {
+    localStorage.setItem(bestTimeKey, secondsElapsed.toString());
+    updateBestTimeDisplay();
+  }
+}
+
+function updateTimer() {
+  const now = Date.now();
+  const elapsedSeconds = (now - startTimestamp) / 1000;
+  document.getElementById('timer').textContent = 'Время: ' + formatTime(elapsedSeconds);
+}
+
+function finishTest() {
+  stopTimeCounting();
+  alert('Тест завершен!\nВремя: ' + document.getElementById('timer').textContent.slice(7) + '\nОшибки: ' + errorsCount);
+  gameActive = false;
+}
+
+// Обработчик кнопки
+document.getElementById('startBtn').addEventListener('click', () => {
+  generateTable();
+  errorsCount = 0;
+  document.getElementById('errors').textContent = 'Ошибки: 0';
+  document.getElementById('timer').textContent = 'Время: 00:00.0';
+  clearInterval(timerInterval);
+  updateBestTimeDisplay();
+});
+
+// При загрузке страницы
+window.onload = () => {
+  generateTable();
+  updateBestTimeDisplay();
+};
+</script>
+</body>
+</html>

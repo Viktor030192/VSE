@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700&display=swap'); /* ← Можно удалить, если нужно 100% оффлайн */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1133 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: white;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 24px;
+            padding: 30px 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: linear-gradient(to right, #4f46e5, #7c3aed);
+            color: white;
+            font-size: 1.25rem;
+            font-weight: 600;
+            padding: 22px 28px;
+            margin-bottom: 16px;
+            border-radius: 16px;
+            text-decoration: none;
+            border: none;
+            width: 100%;
+            transition: none; /* Анимации полностью убраны */
+        }
+
+        /* Разные цвета для кнопок */
+        .btn1 { background: linear-gradient(to right, #4f46e5, #7c3aed); }
+        .btn2 { background: linear-gradient(to right, #0284c8, #22d3ee); }
+        .btn3 { background: linear-gradient(to right, #059669, #14b8a6); }
+        .btn4 { background: linear-gradient(to right, #d97706, #f59e0b); }
+        .btn5 { background: linear-gradient(to right, #db2777, #ec4899); }
+
+        .btn-number {
+            font-size: 2.4rem;
+            font-weight: 700;
+            opacity: 0.9;
+            min-width: 50px;
+        }
+
+        .btn:last-child {
+            margin-bottom: 0;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #94a3b8;
+            font-size: 0.95rem;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.9rem;
+            }
+            .btn {
+                font-size: 1.1rem;
+                padding: 20px 24px;
+            }
+            .btn-number {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Выберите раздел</h1>
+        </div>
+
+        <div class="glass">
+            <a href="OTVETY.html"  class="btn btn1">
+                <span class="btn-number">1</span>
+                <span>ОТВЕТЫ ТУ</span>
+                <span>→</span>
+            </a>
+
+            <a href="TEST.html" class="btn btn2">
+                <span class="btn-number">2</span>
+                <span>ТЕСТ ТУ</span>
+                <span>→</span>
+            </a>
+
+            <a href="ELEKTRY.html"  class="btn btn3">
+                <span class="btn-number">3</span>
+                <span>ОТВЕТЫ ЭЛЕКТР.</span>
+                <span>→</span>
+            </a>
+
+            <a href="34r35b.html"  class="btn btn4">
+                <span class="btn-number">4</span>
+                <span>КОНЦЕНТРАЦИЯ</span>
+                <span>→</span>
+            </a>
+
+             <a href="USID.html" class="btn btn5">
+                <span class="btn-number">5</span>
+                <span>УСИДЧИВОСТЬ</span>
+                <span>→</span>
+            </a>
+        </div>
+
+        <div class="footer">
+           
+        </div>
+    </div>
+</body>
+</html>

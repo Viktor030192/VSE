@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<title>утомляемостьа</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    text-align: center;
+  }
+  #stats {
+    margin-top: 20px;
+    white-space: pre-wrap;
+  }
+  /* Обертка для кнопок */
+  .buttons-container {
+    position: relative;
+    width: 600px; /* ширина SVG или контейнера */
+    margin: 30px auto; /* по центру страницы */
+  }
+  /* Общий стиль для кнопок */
+  .circle-button {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%) translateX(20%);
+    width: 80px;
+    height: 80px;
+    border: none;
+    border-radius: 50%;
+    color: #fff;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 24px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  }
+  #greenBtn {
+    left: calc(50% - 140px);
+  }
+  #yellowBtn {
+    left: calc(50% + 30px);
+  }
+  #greenBtn {
+    background-color: green;
+  }
+  #yellowBtn {
+    background-color: red;
+  }
+</style>
+</head>
+<body>
+<h1></h1>
+<svg id="circle-svg" width="600" height="600" style="border:1px solid #ccc; display:block; margin: 0 auto;">
+  <defs>
+    <!-- Градиент для ячеек -->
+    <linearGradient id="cellGradient" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ddd"/>
+      <stop offset="100%" stop-color="#999"/>
+    </linearGradient>
+    <!-- Радиальный градиент для шарика -->
+    <radialGradient id="ballGradient" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#7fdbff"/>
+      <stop offset="100%" stop-color="#0077be"/>
+    </radialGradient>
+    <!-- Радиальный градиент для зеленого шарика -->
+    <radialGradient id="greenGradient" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#66cc66"/>
+      <stop offset="100%" stop-color="#336633"/>
+    </radialGradient>
+  </defs>
+</svg>
+<div class="buttons-container">
+  <button id="greenBtn" class="circle-button"></button>
+  <button id="yellowBtn" class="circle-button"></button>
+</div>
+<div id="stats"></div>
+
+<script>
+const svg = document.getElementById('circle-svg');
+const numCells = 60;
+const radius = 200;
+const centerX = 300;
+const centerY = 300;
+const cellSize = 8;
+
+// Создаем ячейки по кругу с объемным эффектом
+const cells = [];
+for (let i = 0; i < numCells; i++) {
+  const angle = (2 * Math.PI / numCells) * i;
+  const x = centerX + radius * Math.cos(angle);
+  const y = centerY + radius * Math.sin(angle);
+  const cell = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+  cell.setAttribute("cx", x);
+  cell.setAttribute("cy", y);
+  cell.setAttribute("r", cellSize);
+  cell.setAttribute("fill", "url(#cellGradient)");
+  svg.appendChild(cell);
+  cells.push(cell);
+}
+
+// Центр сигнальные шарики
+const redSignal = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+redSignal.setAttribute("cx", centerX);
+redSignal.setAttribute("cy", centerY);
+redSignal.setAttribute("r", 10);
+redSignal.setAttribute("fill", "gray");
+svg.appendChild(redSignal);
+
+const yellowSignal = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+yellowSignal.setAttribute("cx", centerX);
+yellowSignal.setAttribute("cy", centerY);
+yellowSignal.setAttribute("r", 10);
+yellowSignal.setAttribute("fill", "gray");
+svg.appendChild(yellowSignal);
+
+// Шарик для движения по кругу
+const ball = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+let currentIndex = 15;
+
+function moveBall() {
+  const angle = (2 * Math.PI / numCells) * currentIndex;
+  const x = centerX + radius * Math.cos(angle);
+  const y = centerY + radius * Math.sin(angle);
+  ball.setAttribute("cx", x);
+  ball.setAttribute("cy", y);
+}
+moveBall();
+
+ball.setAttribute("r", cellSize);
+// Изначально шарик — зеленый с объемным эффектом
+// Убираем изменение цвета, шарик всегда зеленый
+// ball.setAttribute("fill", "url(#greenGradient)");
+ball.setAttribute("fill", "url(#greenGradient)");
+svg.appendChild(ball);
+
+// Статистика и логика
+let startTime = Date.now();
+const testDuration = 5 * 60 * 1000; // 5 минут
+
+let redLitTime = null;
+let redActive = false;
+let redMustPress = false;
+
+let yellowLitTime = null;
+let yellowActive = false;
+
+let lastJumpTime = null;
+let reactionTimeToJump = null;
+let reactionTimeToRed = null;
+
+let crossesCount = 0;
+let missedCrosses = 0;
+let redLitCount = 0;
+let redHitCount = 0;
+let yellowDetectedCount = 0;
+let yellowClickedCount = 0;
+
+const redSignalCircle = redSignal;
+const yellowSignalCircle = yellowSignal;
+
+function setCenterColor(color) {
+  redSignalCircle.setAttribute("fill", color);
+  yellowSignalCircle.setAttribute("fill", color);
+}
+
+function triggerYellow() {
+  yellowLitTime = Date.now();
+  yellowDetectedCount++;
+  setCenterColor('yellow');
+  yellowActive = true;
+  setTimeout(() => {
+    yellowLitTime = null;
+    setCenterColor('gray');
+    yellowActive = false;
+  }, 3000);
+}
+
+function triggerRed() {
+  redLitCount++;
+  redLitTime = Date.now();
+  redActive = true;
+  redMustPress = true;
+  setCenterColor('red');
+  setTimeout(() => {
+    redLitTime = null;
+    redActive = false;
+    redMustPress = false;
+    setCenterColor('gray');
+  }, 5000);
+}
+
+function scheduleNextEvent() {
+  const time = Math.random() * 10000 + 5000;
+  setTimeout(() => {
+    if (Date.now() - startTime >= testDuration) return;
+    const rand = Math.random();
+    if (rand < 0.3 && !redActive && !yellowActive) {
+      triggerYellow();
+    } else if (rand < 0.6 && !redActive && !yellowActive) {
+      triggerRed();
+    }
+    scheduleNextEvent();
+  }, time);
+}
+scheduleNextEvent();
+
+const btnGreen = document.getElementById('greenBtn');
+const btnYellow = document.getElementById('yellowBtn');
+
+btnGreen.addEventListener('click', () => {
+  if (lastJumpTime !== null) {
+    reactionTimeToJump = Date.now() - lastJumpTime;
+  }
+  if (skippedIndex !== null) {
+    currentIndex = skippedIndex;
+    skippedIndex = null;
+    moveBall();
+  }
+  // Зеленый шарик всегда остается зеленым, ничего не делаем
+});
+
+btnYellow.addEventListener('click', () => {
+  if (redActive && redMustPress) {
+    const timeToYellow = Date.now() - redLitTime;
+    redHitCount++;
+    redActive = false;
+    redMustPress = false;
+    setCenterColor('gray');
+    reactionTimeToRed = timeToYellow;
+  }
+  // Оставляем шарик всегда зеленым, ничего не меняем
+  // ball.setAttribute("fill", "yellow");
+});
+
+function randomJump() {
+  const lastIndex = currentIndex;
+  let newIndex;
+  if (Math.random() < 0.25) {
+    newIndex = (currentIndex + 2) % numCells;
+    skippedIndex = (currentIndex + 1) % numCells;
+  } else {
+    newIndex = (currentIndex + 1) % numCells;
+    skippedIndex = null;
+  }
+  if (skippedIndex !== null) {
+    crossesCount++;
+    if (lastJumpTime !== null) {
+      reactionTimeToJump = Date.now() - lastJumpTime;
+    }
+    lastJumpTime = Date.now();
+  } else {
+    missedCrosses++;
+  }
+  currentIndex = newIndex;
+  moveBall();
+}
+
+const jumpInterval = setInterval(() => {
+  if (Date.now() - startTime >= testDuration) {
+    clearInterval(jumpInterval);
+    showResults();
+    return;
+  }
+  randomJump();
+}, 2000);
+
+function showResults() {
+  const totalTimeSec = Math.floor((Date.now() - startTime) / 1000);
+  const resultText = `
+Общее время теста: ${totalTimeSec} секунд
+Количество перескоков: ${crossesCount}
+Пропущенных перескоков: ${missedCrosses}
+Количество загораний красного: ${redLitCount}
+Количество нажатий желтой при красном: ${redHitCount}
+Количество загораний желтой: ${yellowDetectedCount}
+Время реакции на перескок (мс): ${reactionTimeToJump !== null ? reactionTimeToJump : 'нет'}
+Время реакции на красный (мс): ${reactionTimeToRed !== null ? reactionTimeToRed : 'нет'}
+`;
+  document.getElementById('stats').textContent = resultText;
+}
+</script>
+</body>
+</html>
